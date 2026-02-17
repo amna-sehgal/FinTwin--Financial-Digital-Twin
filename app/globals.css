@@ -1,16 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --sidebar-bg: rgb(44,44,43);
-  --main-bg: rgb(249,249,245);
-  --card-bg: rgb(248,247,242);
+  --sidebar-bg: rgb(44,44,43);        /* DARK NAV */
+  --main-bg: rgb(234, 226, 201);
+      /* BEIGE CANVAS */
+  
+  --card-blue: rgba(162,167,248,0.18);
+  --card-green: rgba(124,189,140,0.18);
+  --card-gold: rgba(243,212,137,0.18);
+
   --border: rgb(202,205,194);
   --text-dark: rgb(44,44,43);
   --text-muted: rgb(98,96,91);
+
   --accent-blue: rgb(162,167,248);
   --accent-gold: rgb(243,212,137);
   --accent-green: rgb(124,189,140);
+
+  --card-blue: rgba(159, 163, 246, 0.505);
+--card-green: rgba(194,203,182);
+--card-gold: rgba(242,212,137);
+
 }
+
+
+
 
 body {
   margin: 0;
@@ -18,6 +32,18 @@ body {
   background: var(--main-bg);
   color: var(--text-dark);
 }
+
+/* SOFT GRADIENT BACKGROUND */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(162,167,248,0.15), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(243,212,137,0.15), transparent 40%);
+  z-index: -1;
+}
+
 * {
   transition: all 0.25s ease;
 }
@@ -25,4 +51,3 @@ body {
 html {
   scroll-behavior: smooth;
 }
-

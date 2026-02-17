@@ -1,38 +1,57 @@
+"use client";
+import { motion } from "framer-motion";
+
 export default function FeatureCards() {
-    return (
-        <section className="px-8 py-16">
-            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                <Feature
-                    title="Simulate Life Decisions"
-                    desc="Test decisions like buying a car, moving city, or switching jobs."
-                />
-                <Feature
-                    title="Predict Future Balance"
-                    desc="See how your bank balance changes over the next 12 months."
-                />
-                <Feature
-                    title="Financial Stress Score"
-                    desc="Understand risk before making big financial choices."
-                />
-            </div>
-        </section>
-    );
+  return (
+    <section className="px-8 py-24">
+      <motion.div
+        className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={{
+          visible: {
+            transition: { staggerChildren: 0.25 }
+          }
+        }}
+      >
+        <Feature
+          title="Simulate Life Decisions"
+          desc="Test decisions like buying a car, moving city, or switching jobs."
+          bg="var(--card-blue)"
+        />
+        <Feature
+          title="Predict Future Balance"
+          desc="See how your bank balance changes over the next 12 months."
+          bg="var(--card-green)"
+        />
+        <Feature
+          title="Financial Stress Score"
+          desc="Understand risk before making big financial choices."
+          bg="var(--card-gold)"
+        />
+      </motion.div>
+    </section>
+  );
 }
 
-function Feature({ title, desc }: any) {
-    return (
-        <div
-            className="p-8 rounded-2xl backdrop-blur-sm hover:-translate-y-1"
-            style={{
-                background: "rgba(255,255,255,0.6)",
-                border: "1px solid var(--border)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.05)"
-            }}
-        >
-
-            <h3 className="font-bold text-lg mb-2">{title}</h3>
-            <p className="text-gray-500">{desc}</p>
-        </div>
-    );
+function Feature({ title, desc, bg }: any) {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 60 },
+        visible: { opacity: 1, y: 0 }
+      }}
+      transition={{ duration: 0.7 }}
+      className="p-8 rounded-3xl hover:-translate-y-3"
+      style={{
+        backgroundColor: bg,
+        border: "1px solid rgba(0,0,0,0.06)",
+        boxShadow: "0 15px 40px rgba(0,0,0,0.05)"
+      }}
+    >
+      <h3 className="font-bold text-xl mb-3">{title}</h3>
+      <p className="text-[var(--text-muted)]">{desc}</p>
+    </motion.div>
+  );
 }
-

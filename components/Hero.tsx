@@ -1,24 +1,47 @@
+"use client";
+import { motion } from "framer-motion";
+import Link from "next/link";
+
 export default function Hero() {
     return (
-        <section className="text-center py-24 px-6">
-            <h1 className="text-5xl font-bold max-w-3xl mx-auto leading-tight">
-                Test your life decisions before they cost you money.
-            </h1>
+        <section className="text-center pt-28 pb-24 px-6">
 
-            <p className="mt-6 text-lg text-gray-500 max-w-xl mx-auto">
+            <motion.h1
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-6xl font-bold max-w-3xl mx-auto leading-tight"
+            >
+                Test your life decisions
+                <span className="block mt-2">
+                    before they cost you money.
+                </span>
+            </motion.h1>
+
+            <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="mt-6 text-lg max-w-xl mx-auto text-[var(--text-muted)]"
+            >
                 Simulate financial choices like buying a car, moving cities, or
                 changing jobs — and see their future impact instantly.
-            </p>
+            </motion.p>
 
-            <button
-                className="mt-8 px-8 py-4 rounded-xl font-semibold hover:scale-105"
-                style={{
-                    background: "var(--accent-blue)",
-                    boxShadow: "0 8px 20px rgba(0,0,0,0.1)"
-                }}
-            >
-                Start Simulation
-            </button>
+            <Link href="/onboarding">
+                <motion.button
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.8 }}
+                    className="mt-10 px-10 py-5 rounded-2xl font-semibold hover:scale-105"
+                    style={{
+                        background: "var(--accent-blue)",
+                        boxShadow: "0 15px 40px rgba(162,167,248,0.4)"
+                    }}
+                >
+                    Start Simulation
+                </motion.button>
+            </Link>
 
         </section>
     );
