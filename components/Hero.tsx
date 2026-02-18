@@ -12,9 +12,9 @@ export default function Hero() {
                 transition={{ duration: 0.8 }}
                 className="text-6xl font-bold max-w-3xl mx-auto leading-tight"
             >
-                Test your life decisions
+                Plan big moves with confidence
                 <span className="block mt-2">
-                    before they cost you money.
+                    before they cost you money
                 </span>
             </motion.h1>
 
@@ -24,8 +24,8 @@ export default function Hero() {
                 transition={{ delay: 0.3, duration: 0.8 }}
                 className="mt-6 text-lg max-w-xl mx-auto text-[var(--text-muted)]"
             >
-                Simulate financial choices like buying a car, moving cities, or
-                changing jobs — and see their future impact instantly.
+                Try out decisions like a new city, a big purchase, or a job change.
+                See the impact on your runway, savings, and peace of mind.
             </motion.p>
 
             <Link href="/onboarding">
@@ -33,13 +33,12 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6, duration: 0.8 }}
-                    className="mt-10 px-10 py-5 rounded-2xl font-semibold hover:scale-105"
+                    className="mt-10 btn btn-primary hover:scale-105"
                     style={{
-                        background: "var(--accent-blue)",
                         boxShadow: "0 15px 40px rgba(162,167,248,0.4)"
                     }}
                 >
-                    Start Simulation
+                    Start planning
                 </motion.button>
             </Link>
 

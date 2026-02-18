@@ -32,41 +32,37 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center px-4 md:px-8">
 
       {/* MAIN CARD */}
-      <div
-        className="w-full max-w-xl rounded-3xl p-10 shadow-xl border"
-        style={{
-          background: "rgba(255,255,255,0.55)",
-          backdropFilter: "blur(16px)",
-          borderColor: "var(--border)",
-        }}
-      >
+      <div className="w-full max-w-5xl card p-6 md:p-10">
         {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-semibold">
             Tell us about your finances
           </h1>
-          <p className="text-sm mt-2 text-[var(--text-muted)]">
+          <p className="text-sm mt-1 md:mt-2 text-[var(--text-muted)]">
             This helps us simulate your life decisions beautifully.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+        >
 
-          <Field icon={<Wallet />} label="Monthly Salary" name="salary" onChange={handleChange}/>
-          <Field icon={<Home />} label="Rent" name="rent" onChange={handleChange}/>
-          <Field icon={<Receipt />} label="Expenses" name="expenses" onChange={handleChange}/>
-          <Field icon={<PiggyBank />} label="Savings" name="savings" onChange={handleChange}/>
-          <Field icon={<CreditCard />} label="Debts / EMI" name="emi" onChange={handleChange}/>
-          <Field icon={<MapPin />} label="City (optional)" name="city" onChange={handleChange}/>
+          <Field icon={<Wallet />} label="Monthly Salary" name="salary" onChange={handleChange} />
+          <Field icon={<Home />} label="Rent" name="rent" onChange={handleChange} />
+          <Field icon={<Receipt />} label="Expenses" name="expenses" onChange={handleChange} />
+          <Field icon={<PiggyBank />} label="Savings" name="savings" onChange={handleChange} />
+          <Field icon={<CreditCard />} label="Debts / EMI" name="emi" onChange={handleChange} />
+          <Field icon={<MapPin />} label="City (optional)" name="city" onChange={handleChange} />
 
           {/* BUTTON */}
           <button
             type="submit"
             className="
-              w-full py-4 rounded-xl font-medium mt-6
+              md:col-span-2 w-full py-4 rounded-xl font-medium mt-4
               transition-all duration-300
               hover:shadow-lg hover:scale-[1.02]
               active:scale-[0.98]

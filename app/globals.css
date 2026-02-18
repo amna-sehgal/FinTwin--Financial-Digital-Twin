@@ -1,9 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --sidebar-bg: rgb(44,44,43);        /* DARK NAV */
+  --sidebar-bg: rgb(44,44,43);
   --main-bg: rgb(234, 226, 201);
-      /* BEIGE CANVAS */
   
   --card-blue: rgba(162,167,248,0.18);
   --card-green: rgba(124,189,140,0.18);
@@ -21,6 +20,10 @@
 --card-green: rgba(194,203,182);
 --card-gold: rgba(242,212,137);
 
+  --radius: 24px;
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow: 0 12px 32px rgba(0,0,0,0.08);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.10);
 }
 
 
@@ -31,6 +34,8 @@ body {
   font-family: Inter, system-ui, sans-serif;
   background: var(--main-bg);
   color: var(--text-dark);
+  line-height: 1.4;
+  letter-spacing: 0.1px;
 }
 
 /* SOFT GRADIENT BACKGROUND */
@@ -39,8 +44,8 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(162,167,248,0.15), transparent 40%),
-    radial-gradient(circle at 80% 30%, rgba(243,212,137,0.15), transparent 40%);
+    radial-gradient(circle at 18% 18%, rgba(162,167,248,0.14), transparent 42%),
+    radial-gradient(circle at 78% 28%, rgba(243,212,137,0.14), transparent 44%);
   z-index: -1;
 }
 
@@ -50,4 +55,37 @@ body::before {
 
 html {
   scroll-behavior: smooth;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(162,167,248,0.45);
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.card {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: #fff;
+  box-shadow: 0 8px 25px rgba(162,167,248,0.45);
 }

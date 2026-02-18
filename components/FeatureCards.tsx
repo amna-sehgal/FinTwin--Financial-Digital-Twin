@@ -16,18 +16,18 @@ export default function FeatureCards() {
         }}
       >
         <Feature
-          title="Simulate Life Decisions"
-          desc="Test decisions like buying a car, moving city, or switching jobs."
+          title="Scenario planning"
+          desc="Explore big decisions with clear projections instead of guesswork."
           bg="var(--card-blue)"
         />
         <Feature
-          title="Predict Future Balance"
-          desc="See how your bank balance changes over the next 12 months."
+          title="Future balance"
+          desc="See how your cash grows month by month with each choice."
           bg="var(--card-green)"
         />
         <Feature
-          title="Financial Stress Score"
-          desc="Understand risk before making big financial choices."
+          title="Stress & runway"
+          desc="Understand risk and how long your savings can last."
           bg="var(--card-gold)"
         />
       </motion.div>
