@@ -3,39 +3,35 @@
  import { useState } from "react";
  import Link from "next/link";
  import { useRouter } from "next/navigation";
- 
- export default function SignupPage() {
-   const router = useRouter();
-   const [name, setName] = useState("");
-   const [email, setEmail] = useState("");
-   const [password, setPassword] = useState("");
-   const [confirm, setConfirm] = useState("");
-   const [error, setError] = useState<string | null>(null);
-   const [loading, setLoading] = useState(false);
- 
-   const onSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     setError(null);
- 
-     const emailOk = /\S+@\S+\.\S+/.test(email);
-     const passOk = password.length >= 6 && password === confirm;
-     const nameOk = name.trim().length > 1;
-     if (!emailOk || !passOk || !nameOk) {
-       setError(
-         "Fill all fields correctly. Password must be at least 6 characters and match."
-       );
-       return;
-     }
- 
-    setLoading(true);
-     await new Promise((r) => setTimeout(r, 700));
-    document.cookie = `auth=1; path=/; max-age=${60 * 60 * 24 * 30}`;
-     router.push("/onboarding");
-   };
- 
-   return (
-    <div className="min-h-[80vh] w-full flex items-center justify-center">
-      <div className="w-full max-w-md card p-8">
+import { useSignup } from "@/hooks/useAPI";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const { signup, loading, error: apiError } = useSignup();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const emailOk = /\S+@\S+\.\S+/.test(email);
+    const passOk = password.length >= 6 && password === confirm;
+    const nameOk = name.trim().length > 1;
+    if (!emailOk || !passOk || !nameOk) {
+      setError(
+        "Fill all fields correctly. Password must be at least 6 characters and match."
+      );
+      return;
+    }
+
+    const userId = await signup(name, email, password, confirm);
+    if (userId) {
+      router.push("/onboarding");
+    }
          <h1 className="text-2xl font-bold text-[var(--text-dark)] mb-1">Create your account</h1>
          <p className="text-sm text-[var(--text-muted)] mb-6">
            Start planning with your Financial Digital Twin
@@ -44,6 +40,12 @@
          {error && (
            <div className="mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded-md px-3 py-2">
              {error}
+           </div>
+         )}
+
+         {apiError && (
+           <div className="mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded-md px-3 py-2">
+             {apiError}
            </div>
          )}
  
