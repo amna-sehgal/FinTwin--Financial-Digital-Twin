@@ -2,9 +2,11 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  AlertCircle,
   Brain,
   CalendarDays,
   ChevronRight,
@@ -28,6 +30,7 @@ import {
   Line,
   YAxis,
 } from "recharts";
+import { useDashboard } from "@/hooks/useAPI";
 
 type BarPoint = { month: string; balance: number };
 type PiePoint = { name: string; value: number };
@@ -69,33 +72,157 @@ function useCountUp(target: number, duration = 900) {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const { fetchDashboard, data: responseData, loading, error } = useDashboard();
 
-  const barData: BarPoint[] = [
-    { month: "Jan", balance: 20000 },
-    { month: "Feb", balance: 24000 },
-    { month: "Mar", balance: 30000 },
-    { month: "Apr", balance: 36000 },
-    { month: "May", balance: 42000 },
-    { month: "Jun", balance: 50000 },
-  ];
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
 
-  const trendData = [
-    { month: "Jan", score: 62 },
-    { month: "Feb", score: 66 },
-    { month: "Mar", score: 71 },
-    { month: "Apr", score: 68 },
-    { month: "May", score: 74 },
-    { month: "Jun", score: 78 },
-  ];
+  useEffect(() => {
+    // Check if userId exists in localStorage
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) {
+      setHasError(true);
+      return;
+    }
 
-  const pieData: PiePoint[] = [
-    { name: "Savings", value: 40 },
-    { name: "Expenses", value: 35 },
-    { name: "Rent", value: 25 },
-  ];
+    setUserId(storedUserId);
+    // Fetch dashboard data
+    fetchDashboard(storedUserId);
+  }, [fetchDashboard]);
 
-  const COLORS = ["var(--accent-green)", "var(--accent-blue)", "var(--accent-gold)"];
+  // Extract data from response
+  const dashboardData = responseData?.metrics;
+  const userData = responseData?.userData;
+
+  // Transform API data to chart format
+  const barData: BarPoint[] = useMemo(() => {
+    if (!dashboardData?.projectedBalance || dashboardData.projectedBalance.length === 0) {
+      return [];
+    }
+    return dashboardData.projectedBalance.map((item) => ({
+      month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][(item.month - 1) % 12],
+      balance: item.balance,
+    }));
+  }, [dashboardData?.projectedBalance]);
+
+  const trendData = useMemo(
+    () => {
+      if (!barData.length) return [];
+      return barData.map((b, i) => ({
+        month: b.month,
+        score: Math.min(100, Math.round(dashboardData?.stressScore || 50) - 20 + i * 3),
+      }));
+    },
+    [barData, dashboardData?.stressScore]
+  );
+
+  const pieData: PiePoint[] = useMemo(() => {
+    if (!userData) {
+      return [
+        { name: "Savings", value: 40 },
+        { name: "Expenses", value: 35 },
+        { name: "Rent", value: 25 },
+      ];
+    }
+    
+    // Create realistic pie chart from the user's data
+    const totalMonthly = userData.monthlySalary || 100000;
+    const expensesPercent = userData.monthlyExpenses ? (userData.monthlyExpenses / totalMonthly) * 100 : 30;
+    const rentPercent = userData.rent ? (userData.rent / totalMonthly) * 100 : 0;
+    const debtsPercent = userData.debts ? (userData.debts / totalMonthly) * 100 : 0;
+    // Remaining is savings/other
+    const savingsPercent = Math.max(0, 100 - expensesPercent - rentPercent - debtsPercent);
+
+    return [
+      { name: "Expenses", value: Math.round(expensesPercent) },
+      { name: "Rent/Home", value: Math.round(rentPercent) },
+      { name: "Debts/EMI", value: Math.round(debtsPercent) },
+      { name: "Savings/Other", value: Math.round(savingsPercent) },
+    ].filter(p => p.value > 0);
+  }, [userData]);
+
+  const COLORS = ["var(--accent-green)", "var(--accent-blue)", "var(--accent-gold)", "var(--accent-purple)", "var(--accent-red)"];
+
+  // Show error if no user account
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--main-bg)" }}>
+        <div className="text-center">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: "rgba(220, 38, 38, 0.1)" }}
+          >
+            <AlertCircle size={32} style={{ color: "rgb(220, 38, 38)" }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--text-dark)" }}>
+            No Account Found
+          </h2>
+          <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+            Please create an account first by completing the onboarding process.
+          </p>
+          <Link
+            href="/onboarding"
+            className="inline-block px-6 py-2 rounded-lg font-semibold"
+            style={{ background: "rgb(162, 167, 248)", color: "white" }}
+          >
+            Go to Onboarding
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if API fetch failed
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--main-bg)" }}>
+        <div className="text-center">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ background: "rgba(220, 38, 38, 0.1)" }}
+          >
+            <AlertCircle size={32} style={{ color: "rgb(220, 38, 38)" }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--text-dark)" }}>
+            Error Loading Dashboard
+          </h2>
+          <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+            {error}
+          </p>
+          <Link
+            href="/onboarding"
+            className="inline-block px-6 py-2 rounded-lg font-semibold"
+            style={{ background: "rgb(162, 167, 248)", color: "white" }}
+          >
+            Go to Onboarding
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--main-bg)" }}>
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-10 h-10 rounded-full mx-auto mb-4"
+            style={{ border: "2px solid var(--border)", borderTopColor: "rgb(162, 167, 248)" }}
+          />
+          <p style={{ color: "var(--text-muted)" }}>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get user identifier
+  const userCity = userData?.city || "User";
+  const userInitial = userCity.charAt(0).toUpperCase();
 
   // ✅ “Hackathon killer” detail: highlight the latest bar on a timed loop (subtle)
   const [activeMonth, setActiveMonth] = useState(5);
@@ -143,7 +270,7 @@ export default function Dashboard() {
                 animate={reduceMotion ? undefined : { scale: [1, 1.03, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
-                A
+                {userInitial}
               </motion.div>
 
               <div>
@@ -151,9 +278,9 @@ export default function Dashboard() {
                   Dashboard
                 </h1>
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  Welcome back, Amna ·{" "}
+                  Welcome back, {userCity} ·{" "}
                   <span className="inline-flex items-center gap-1">
-                    <CalendarDays size={14} /> June
+                    <CalendarDays size={14} /> {new Date().toLocaleString('default', { month: 'long' })}
                   </span>
                 </p>
               </div>
@@ -198,31 +325,33 @@ export default function Dashboard() {
         <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <MetricCard
             title="Monthly Leftover"
-            value="₹18,000"
-            valueNumber={18000}
+            value={inr(dashboardData?.monthlyLeftover || 0)}
+            valueNumber={dashboardData?.monthlyLeftover || 0}
             valueKind="inr"
-            sub="+₹2,300 vs last month"
+            sub={`Target: ₹${(userData?.currentSavings || 0).toLocaleString('en-IN')}/month`}
             icon={<Wallet size={18} />}
-            badge="Healthy"
-            badgeTone="green"
+            badge={dashboardData?.monthlyLeftover! > 0 ? "Healthy" : "Low"}
+            badgeTone={dashboardData?.monthlyLeftover! > 0 ? "green" : "blue"}
           />
           <MetricCard
             title="Savings Rate"
-            value="32%"
-            valueNumber={32}
+            value={`${Math.round((dashboardData?.savingsRate || 0) * 100)}%`}
+            valueNumber={Math.round((dashboardData?.savingsRate || 0) * 100)}
             valueKind="percent"
             sub="Target: 30%+"
             icon={<TrendingUp size={18} />}
-            badge="On track"
-            badgeTone="blue"
+            badge={(dashboardData?.savingsRate || 0) >= 0.3 ? "On track" : "Needs work"}
+            badgeTone={(dashboardData?.savingsRate || 0) >= 0.3 ? "blue" : "gold"}
           />
           <MetricCard
             title="Stress Score"
-            value="Low"
-            sub="Risk mostly stable"
+            value={dashboardData?.stressScore ? Math.round(dashboardData.stressScore) : 0}
+            valueNumber={dashboardData?.stressScore ? Math.round(dashboardData.stressScore) : 0}
+            valueKind="percent"
+            sub={dashboardData?.stressScore! > 60 ? "⚠️ High risk" : "✓ Stable"}
             icon={<Brain size={18} />}
-            badge="Good"
-            badgeTone="gold"
+            badge={dashboardData?.stressScore! > 60 ? "Risky" : "Good"}
+            badgeTone={dashboardData?.stressScore! > 60 ? "gold" : "green"}
           />
         </motion.div>
 
@@ -336,8 +465,9 @@ export default function Dashboard() {
 
             <Panel title="AI Insight" subtitle="Personalized summary based on your trend.">
               <div className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                You’re stable right now. If you add a new EMI, keep it under{" "}
-                <b style={{ color: "var(--text-dark)" }}>₹10k/month</b> to stay in the “Low Stress” zone.
+                {dashboardData?.stressScore! > 60
+                  ? `Your stress score is high (${Math.round(dashboardData?.stressScore || 0)}). Consider reducing EMI or expenses to reach the "Low Stress" zone.`
+                  : `You're in great shape! Your monthly leftover is ₹${(dashboardData?.monthlyLeftover || 0).toLocaleString('en-IN')}. If you add a new EMI, keep it under ₹${Math.round((dashboardData?.monthlyLeftover || 0) * 0.4).toLocaleString('en-IN')}/month.`}
               </div>
 
               <Link
