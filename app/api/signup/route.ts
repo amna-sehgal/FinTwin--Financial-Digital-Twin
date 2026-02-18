@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Create new account
     const user = createUserAccount(email, password, name);
 
-    return NextResponse.json(
+    const res = NextResponse.json(
       {
         success: true,
         message: 'Account created successfully. Please complete your profile.',
@@ -44,6 +44,21 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+    // Set auth cookie so user remains logged in
+    res.cookies.set("auth", user.id, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+    // Mark onboarding not completed yet
+    res.cookies.set("onb", "0", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+    return res;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(

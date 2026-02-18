@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { UserFinancialData, DashboardMetrics, SimulationResult, AIInsight } from '@/backend/types';
+import { UserFinancialData, DashboardMetrics } from '@/backend/types';
 
 /**
  * Hook for user login
@@ -8,7 +8,7 @@ export function useLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ userId: string; hasCompletedOnboarding: boolean } | null> => {
     setLoading(true);
     setError(null);
 
@@ -32,7 +32,7 @@ export function useLogin() {
       localStorage.setItem('userEmail', result.user.email);
       localStorage.setItem('hasOnboarding', result.user.hasCompletedOnboarding.toString());
 
-      return result.userId;
+      return { userId: result.userId, hasCompletedOnboarding: Boolean(result.user.hasCompletedOnboarding) };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
@@ -95,7 +95,11 @@ export function useOnboarding() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submitOnboarding = async (data: any) => {
+  type OnboardingPayload = Partial<Pick<UserFinancialData, 'monthlySalary' | 'rent' | 'monthlyExpenses' | 'currentSavings' | 'debts'>> & {
+    city?: string;
+  };
+
+  const submitOnboarding = async (data: OnboardingPayload) => {
     setLoading(true);
     setError(null);
 
@@ -144,11 +148,7 @@ export function useOnboarding() {
 export function useDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<{
-    user: any;
-    userData: UserFinancialData;
-    metrics: DashboardMetrics;
-  } | null>(null);
+  const [data, setData] = useState<{ userData: UserFinancialData; metrics: DashboardMetrics } | null>(null);
 
   const fetchDashboard = useCallback(async (userId?: string) => {
     setLoading(true);
@@ -179,7 +179,6 @@ export function useDashboard() {
       setLoading(false);
     }
   }, []);
-  };
 
   return { fetchDashboard, loading, error, data };
 }
@@ -193,7 +192,7 @@ export function useSimulation() {
 
   const runSimulation = async (
     decisionType: string,
-    params: Record<string, any>
+    params: Record<string, unknown>
   ) => {
     setLoading(true);
     setError(null);

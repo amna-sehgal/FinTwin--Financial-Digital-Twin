@@ -95,7 +95,7 @@ export function useSimulation() {
 
   const runSimulation = async (
     decisionType: string,
-    params: Record<string, any>
+    params: Record<string, unknown>
   ) => {
     setLoading(true);
     setError(null);

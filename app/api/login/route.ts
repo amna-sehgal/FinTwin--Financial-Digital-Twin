@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Login successful - return user info
-    return NextResponse.json(
+    // Login successful - set auth cookie and return user info
+    const res = NextResponse.json(
       {
         success: true,
         message: 'Login successful',
@@ -50,6 +50,20 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+    res.cookies.set("auth", user.id, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: "lax",
+    });
+    // Reflect onboarding status in a cookie for middleware
+    res.cookies.set("onb", user.hasCompletedOnboarding ? "1" : "0", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+    return res;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

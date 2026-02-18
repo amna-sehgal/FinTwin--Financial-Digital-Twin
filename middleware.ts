@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const auth = req.cookies.get("auth")?.value;
+  const onb = req.cookies.get("onb")?.value; // "1" when onboarding complete
   const { pathname, search } = req.nextUrl;
 
   const isAuth = Boolean(auth);
@@ -25,7 +26,7 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   } else {
-    if (isLogin || isSignup) {
+    if ((isLogin || isSignup) && onb === "1") {
       const url = req.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserWithFinancialData } from '@/backend/lib/database';
 import { calculateDashboardMetrics } from '@/backend/lib/calculations';
-import { AIInsight } from '@/backend/types';
+import { AIInsight, DashboardMetrics } from '@/backend/types';
 
 /**
  * Generate AI insights based on user financial data
  */
-function generateInsights(metrics: any): AIInsight[] {
+function generateInsights(metrics: DashboardMetrics): AIInsight[] {
   const insights: AIInsight[] = [];
   
   // Stress score insights

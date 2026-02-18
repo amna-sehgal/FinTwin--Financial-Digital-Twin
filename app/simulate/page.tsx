@@ -12,15 +12,26 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+type Stress = "SAFE" | "MODERATE" | "HIGH RISK";
+type DecisionKind = "emi" | "subscription" | "income";
+type SimResult = {
+  emi: number;
+  projection: number[];
+  stress: Stress;
+  monthsWithoutCar: number;
+  monthsWithCar: number;
+  delay: number;
+} | null;
+
 export default function SimulatePage() {
 
-  const [decisionType, setDecisionType] = useState<"emi" | "subscription" | "income">("emi");
+  const [decisionType, setDecisionType] = useState<DecisionKind>("emi");
   const [amount, setAmount] = useState(0);
   const [downPayment, setDownPayment] = useState(0);
   const [months, setMonths] = useState(12);
   const [monthlyCost, setMonthlyCost] = useState(0);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SimResult>(null);
 
   const income = 30000;
   const expenses = 15000;
@@ -55,7 +66,7 @@ export default function SimulatePage() {
 
     const ratio = leftover / income;
 
-    let stress = "SAFE";
+    let stress: Stress = "SAFE";
     if (ratio < 0.2) stress = "HIGH RISK";
     else if (ratio < 0.4) stress = "MODERATE";
 
@@ -96,7 +107,7 @@ export default function SimulatePage() {
             <SelectField
               label="Decision type"
               value={decisionType}
-              onChange={(v: "emi" | "subscription" | "income") => setDecisionType(v)}
+              onChange={(v) => setDecisionType(v)}
               options={[
                 { label: "One-time purchase (EMI)", value: "emi", icon: <Car size={16} /> },
                 { label: "Monthly subscription", value: "subscription", icon: <Receipt size={16} /> },
@@ -194,7 +205,17 @@ export default function SimulatePage() {
   );
 }
 
-function Field({ label, icon, value, onChange }: any) {
+function Field({
+  label,
+  icon,
+  value,
+  onChange,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  value: number;
+  onChange: (v: number) => void;
+}) {
   return (
     <div>
       <label className="text-sm mb-1 block">{label}</label>
@@ -214,7 +235,7 @@ function Field({ label, icon, value, onChange }: any) {
     </div>
   );
 }
-function CountUp({ end, prefix = "", suffix = "" }: any) {
+function CountUp({ end, prefix = "", suffix = "" }: { end: number; prefix?: string; suffix?: string }) {
   const [val, setVal] = useState(0);
   const ref = useRef<number | null>(null);
   useEffect(() => {
@@ -234,7 +255,15 @@ function CountUp({ end, prefix = "", suffix = "" }: any) {
   return <span>{prefix}{formatted}{suffix}</span>;
 }
 
-function Stat({ label, value, tone }: any) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: Stress;
+}) {
   let color = "var(--text-dark)";
   if (tone === "HIGH RISK") color = "red";
   else if (tone === "MODERATE") color = "orange";
@@ -247,7 +276,17 @@ function Stat({ label, value, tone }: any) {
   );
 }
 
-function SelectField({ label, value, onChange, options }: any) {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: DecisionKind;
+  onChange: (v: DecisionKind) => void;
+  options: Array<{ label: string; value: DecisionKind; icon: React.ReactNode }>;
+}) {
   return (
     <div>
       <label className="text-sm mb-1 block">{label}</label>
@@ -256,14 +295,14 @@ function SelectField({ label, value, onChange, options }: any) {
         style={{ borderColor: "var(--border)", background: "rgba(255,255,255,0.75)" }}
       >
         <div className="p-2 rounded-lg" style={{ background: "var(--card-blue)" }}>
-          {options.find((o: any) => o.value === value)?.icon}
+          {options.find((o) => o.value === value)?.icon}
         </div>
         <select
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value as DecisionKind)}
           className="w-full bg-transparent outline-none"
         >
-          {options.map((o: any) => (
+          {options.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>

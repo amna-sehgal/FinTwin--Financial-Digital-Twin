@@ -52,6 +52,7 @@ export default function Sidebar() {
         <button
           onClick={() => {
             document.cookie = "auth=; path=/; max-age=0";
+            document.cookie = "onb=; path=/; max-age=0";
             router.push("/login");
           }}
           className="w-full text-left px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15"

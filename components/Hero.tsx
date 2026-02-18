@@ -28,7 +28,7 @@ export default function Hero() {
                 See the impact on your runway, savings, and peace of mind.
             </motion.p>
 
-            <Link href="/onboarding">
+            <Link href="/signup">
                 <motion.button
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}

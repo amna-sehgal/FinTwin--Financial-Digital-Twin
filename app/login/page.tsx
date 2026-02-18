@@ -27,9 +27,13 @@ export default function LoginPage() {
       return;
     }
 
-    const userId = await login(email, password);
-    if (userId) {
-      router.push("/dashboard");
+    const res = await login(email, password);
+    if (res) {
+      if (res.hasCompletedOnboarding) {
+        router.push("/dashboard");
+      } else {
+        router.push("/onboarding");
+      }
     }
   };
 
@@ -84,7 +88,7 @@ export default function LoginPage() {
         </form>
 
         <div className="text-sm text-[var(--text-muted)] mt-6 text-center">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-[var(--text-dark)] font-semibold underline">
             Sign up
           </Link>

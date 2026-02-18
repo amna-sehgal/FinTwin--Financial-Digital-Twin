@@ -35,7 +35,7 @@ export default function FeatureCards() {
   );
 }
 
-function Feature({ title, desc, bg }: any) {
+function Feature({ title, desc, bg }: { title: string; desc: string; bg: string }) {
   return (
     <motion.div
       variants={{

@@ -8,7 +8,9 @@ export interface ValidationError {
 /**
  * Validate onboarding form data
  */
-export function validateOnboardingData(data: any): ValidationError[] {
+export function validateOnboardingData(
+  data: Partial<Pick<UserFinancialData, 'monthlySalary' | 'rent' | 'monthlyExpenses' | 'currentSavings' | 'debts'>>
+): ValidationError[] {
   const errors: ValidationError[] = [];
   
   // Monthly salary validation
@@ -78,8 +80,8 @@ export function validateOnboardingData(data: any): ValidationError[] {
   
   // Check if expenses exceed income
   const monthlyLeftover = 
-    data.monthlySalary - data.rent - data.monthlyExpenses - data.debts;
-  if (monthlyLeftover < -data.monthlySalary * 0.5) {
+    (data.monthlySalary ?? 0) - (data.rent ?? 0) - (data.monthlyExpenses ?? 0) - (data.debts ?? 0);
+  if (monthlyLeftover < - (data.monthlySalary ?? 0) * 0.5) {
     errors.push({
       field: 'overall',
       message: 'Your expenses exceed income by more than 50%. Please review your figures.',
@@ -92,7 +94,7 @@ export function validateOnboardingData(data: any): ValidationError[] {
 /**
  * Validate simulation request
  */
-export function validateSimulationRequest(request: any): ValidationError[] {
+export function validateSimulationRequest(request: SimulationRequest): ValidationError[] {
   const errors: ValidationError[] = [];
   
   // Decision type validation

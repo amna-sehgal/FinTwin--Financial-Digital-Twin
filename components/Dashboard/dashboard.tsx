@@ -2,8 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
   AlertCircle,
@@ -46,13 +45,10 @@ function tint(varName: string, alpha: number) {
 /** small hook: animates number up (human-feel KPI motion) */
 function useCountUp(target: number, duration = 900) {
   const reduce = useReducedMotion();
-  const [val, setVal] = useState(0);
+  const [val, setVal] = useState(() => (reduce ? Math.round(target) : 0));
 
   useEffect(() => {
-    if (reduce) {
-      setVal(target);
-      return;
-    }
+    if (reduce) return;
     let raf = 0;
     const start = performance.now();
     const from = 0;
@@ -68,28 +64,21 @@ function useCountUp(target: number, duration = 900) {
     return () => cancelAnimationFrame(raf);
   }, [target, duration, reduce]);
 
-  return val;
+  return reduce ? Math.round(target) : val;
 }
 
 export default function Dashboard() {
-  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const { fetchDashboard, data: responseData, loading, error } = useDashboard();
 
-  const [userId, setUserId] = useState<string | null>(null);
-  const [hasError, setHasError] = useState(false);
+  const [hasError] = useState(() => !localStorage.getItem("userId"));
 
   useEffect(() => {
     // Check if userId exists in localStorage
     const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) {
-      setHasError(true);
-      return;
+    if (storedUserId) {
+      fetchDashboard(storedUserId);
     }
-
-    setUserId(storedUserId);
-    // Fetch dashboard data
-    fetchDashboard(storedUserId);
   }, [fetchDashboard]);
 
   // Extract data from response
@@ -105,7 +94,7 @@ export default function Dashboard() {
       month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][(item.month - 1) % 12],
       balance: item.balance,
     }));
-  }, [dashboardData?.projectedBalance]);
+  }, [dashboardData]);
 
   const trendData = useMemo(
     () => {
@@ -115,7 +104,7 @@ export default function Dashboard() {
         score: Math.min(100, Math.round(dashboardData?.stressScore || 50) - 20 + i * 3),
       }));
     },
-    [barData, dashboardData?.stressScore]
+    [barData, dashboardData]
   );
 
   const pieData: PiePoint[] = useMemo(() => {
@@ -144,6 +133,24 @@ export default function Dashboard() {
   }, [userData]);
 
   const COLORS = ["var(--accent-green)", "var(--accent-blue)", "var(--accent-gold)", "var(--accent-purple)", "var(--accent-red)"];
+
+  // Hooks that must be called unconditionally
+  const [activeMonth, setActiveMonth] = useState(5);
+  useEffect(() => {
+    if (reduceMotion || barData.length === 0) return;
+    const id = setInterval(() => {
+      setActiveMonth((p) => (barData.length ? (p + 1) % barData.length : 0));
+    }, 1400);
+    return () => clearInterval(id);
+  }, [reduceMotion, barData.length]);
+
+  const chartIn = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 8, filter: "blur(2px)" },
+      show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.55 } },
+    }),
+    []
+  );
 
   // Show error if no user account
   if (hasError) {
@@ -210,7 +217,7 @@ export default function Dashboard() {
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 1, repeat: Infinity }}
             className="w-10 h-10 rounded-full mx-auto mb-4"
             style={{ border: "2px solid var(--border)", borderTopColor: "rgb(162, 167, 248)" }}
           />
@@ -224,16 +231,6 @@ export default function Dashboard() {
   const userCity = userData?.city || "User";
   const userInitial = userCity.charAt(0).toUpperCase();
 
-  // ✅ “Hackathon killer” detail: highlight the latest bar on a timed loop (subtle)
-  const [activeMonth, setActiveMonth] = useState(5);
-  useEffect(() => {
-    if (reduceMotion) return;
-    const id = setInterval(() => {
-      setActiveMonth((p) => (p + 1) % barData.length);
-    }, 1400);
-    return () => clearInterval(id);
-  }, [reduceMotion, barData.length]);
-
   const wrap = {
     hidden: { opacity: 0, y: 10 },
     show: {
@@ -245,17 +242,8 @@ export default function Dashboard() {
 
   const item = {
     hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+    show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
   };
-
-  // “premium” chart entrance (no layout change)
-  const chartIn = useMemo(
-    () => ({
-      hidden: { opacity: 0, y: 8, filter: "blur(2px)" },
-      show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.55, ease: "easeOut" } },
-    }),
-    []
-  );
 
   return (
     <div className="min-h-screen" style={{ background: "var(--main-bg)" }}>
@@ -268,7 +256,7 @@ export default function Dashboard() {
                 className="h-10 w-10 rounded-full flex items-center justify-center font-semibold"
                 style={{ background: "var(--sidebar-bg)", color: "white" }}
                 animate={reduceMotion ? undefined : { scale: [1, 1.03, 1] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2.4, repeat: Infinity }}
               >
                 {userInitial}
               </motion.div>
@@ -330,8 +318,8 @@ export default function Dashboard() {
             valueKind="inr"
             sub={`Target: ₹${(userData?.currentSavings || 0).toLocaleString('en-IN')}/month`}
             icon={<Wallet size={18} />}
-            badge={dashboardData?.monthlyLeftover! > 0 ? "Healthy" : "Low"}
-            badgeTone={dashboardData?.monthlyLeftover! > 0 ? "green" : "blue"}
+            badge={(dashboardData?.monthlyLeftover ?? 0) > 0 ? "Healthy" : "Low"}
+            badgeTone={(dashboardData?.monthlyLeftover ?? 0) > 0 ? "green" : "blue"}
           />
           <MetricCard
             title="Savings Rate"
@@ -345,13 +333,13 @@ export default function Dashboard() {
           />
           <MetricCard
             title="Stress Score"
-            value={dashboardData?.stressScore ? Math.round(dashboardData.stressScore) : 0}
+            value={"0%"}
             valueNumber={dashboardData?.stressScore ? Math.round(dashboardData.stressScore) : 0}
             valueKind="percent"
-            sub={dashboardData?.stressScore! > 60 ? "⚠️ High risk" : "✓ Stable"}
+            sub={(dashboardData?.stressScore ?? 0) > 60 ? "⚠️ High risk" : "✓ Stable"}
             icon={<Brain size={18} />}
-            badge={dashboardData?.stressScore! > 60 ? "Risky" : "Good"}
-            badgeTone={dashboardData?.stressScore! > 60 ? "gold" : "green"}
+            badge={(dashboardData?.stressScore ?? 0) > 60 ? "Risky" : "Good"}
+            badgeTone={(dashboardData?.stressScore ?? 0) > 60 ? "gold" : "green"}
           />
         </motion.div>
 
@@ -387,7 +375,7 @@ export default function Dashboard() {
                       maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.2))",
                     }}
                     animate={{ x: ["-40%", "120%"] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 2.8, repeat: Infinity }}
                   />
                 )}
 
@@ -451,7 +439,7 @@ export default function Dashboard() {
                   {/* tiny “nudge” animation on arrow */}
                   <motion.div
                     animate={reduceMotion ? undefined : { x: [0, 3, 0] }}
-                    transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 1.4, repeat: Infinity }}
                   >
                     <ChevronRight />
                   </motion.div>
@@ -465,7 +453,7 @@ export default function Dashboard() {
 
             <Panel title="AI Insight" subtitle="Personalized summary based on your trend.">
               <div className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                {dashboardData?.stressScore! > 60
+                {(dashboardData?.stressScore ?? 0) > 60
                   ? `Your stress score is high (${Math.round(dashboardData?.stressScore || 0)}). Consider reducing EMI or expenses to reach the "Low Stress" zone.`
                   : `You're in great shape! Your monthly leftover is ₹${(dashboardData?.monthlyLeftover || 0).toLocaleString('en-IN')}. If you add a new EMI, keep it under ₹${Math.round((dashboardData?.monthlyLeftover || 0) * 0.4).toLocaleString('en-IN')}/month.`}
               </div>
@@ -609,7 +597,7 @@ function MotionWrap({ children }: { children: React.ReactNode }) {
     <motion.div
       variants={{
         hidden: { opacity: 0, y: 8 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+        show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
       }}
       whileHover={reduceMotion ? undefined : { y: -1 }}
       transition={{ duration: 0.15 }}
@@ -685,14 +673,14 @@ function MetricCard({
       : tint("--accent-blue", 0.22);
 
   const reduceMotion = useReducedMotion();
-  const n = typeof valueNumber === "number" ? useCountUp(valueNumber, 850) : null;
+  const n = useCountUp(valueNumber ?? 0, 850);
+  const hasNumber = typeof valueNumber === "number";
 
-  const displayValue =
-    n === null
-      ? value
-      : valueKind === "percent"
+  const displayValue = hasNumber
+    ? valueKind === "percent"
       ? `${n}%`
-      : inr(n);
+      : inr(n)
+    : value;
 
   return (
     <motion.div
@@ -732,7 +720,7 @@ function MetricCard({
           className="text-xs px-3 py-1 rounded-full font-semibold"
           style={{ background: tone, border: "1px solid var(--border)", color: "var(--text-dark)" }}
           animate={reduceMotion ? undefined : { boxShadow: ["0 0 0 rgba(0,0,0,0)", "0 0 0 6px rgba(162,167,248,0.0)", "0 0 0 rgba(0,0,0,0)"] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 2.2, repeat: Infinity }}
         >
           {badge}
         </motion.span>

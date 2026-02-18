@@ -8,18 +8,16 @@ type Message = {
 };
 
 export default function AIPlannerPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("ai-chat") : null;
+    return saved ? JSON.parse(saved) : [];
+  });
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   /* -------------------- LOAD CHAT -------------------- */
-  useEffect(() => {
-    const saved = localStorage.getItem("ai-chat");
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
-  }, []);
+  // moved into lazy initializer above
 
   /* -------------------- SAVE CHAT -------------------- */
   useEffect(() => {
@@ -109,7 +107,7 @@ Run a simulation before making a major financial move.`;
   };
 
   /* -------------------- ENTER TO SEND -------------------- */
-  const handleKeyDown = (e: any) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       sendMessage();

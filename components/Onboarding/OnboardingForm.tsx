@@ -26,9 +26,9 @@ export default function Onboarding() {
     city: "",
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     if (errors[name]) {
@@ -60,7 +60,7 @@ export default function Onboarding() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -142,7 +142,21 @@ export default function Onboarding() {
   );
 }
 
-function Field({ icon, label, name, onChange, value, error }: any) {
+function Field({
+  icon,
+  label,
+  name,
+  onChange,
+  value,
+  error,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  name: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value: string;
+  error?: string;
+}) {
   return (
     <div>
       <label className="text-sm mb-2 block">{label}</label>

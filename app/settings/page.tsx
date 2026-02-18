@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type SettingsState = {
   profileName: string;
@@ -18,29 +18,27 @@ const STORAGE_KEY = "fintwin-settings";
 
 export default function SettingsPage() {
   const [savedMsg, setSavedMsg] = useState("");
-  const [settings, setSettings] = useState<SettingsState>({
-    profileName: "Amna",
-    city: "Delhi",
-    currency: "INR",
-    monthlyIncome: 30000,
-    monthlyExpenses: 15000,
-    savingsGoal: 500000,
-    notifications: true,
-    autoSaveDecisions: true,
-    darkMode: false,
-  });
-
-  // Load from localStorage
-  useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        setSettings(JSON.parse(raw));
-      } catch {
-        // ignore corrupted storage
+  const [settings, setSettings] = useState<SettingsState>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        return JSON.parse(raw) as SettingsState;
       }
+    } catch {
+      // ignore corrupted storage
     }
-  }, []);
+    return {
+      profileName: "Amna",
+      city: "Delhi",
+      currency: "INR",
+      monthlyIncome: 30000,
+      monthlyExpenses: 15000,
+      savingsGoal: 500000,
+      notifications: true,
+      autoSaveDecisions: true,
+      darkMode: false,
+    };
+  });
 
   const saveSettings = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -123,7 +121,9 @@ export default function SettingsPage() {
               <select
                 className="w-full p-2 rounded border"
                 value={settings.currency}
-                onChange={(e) => setSettings({ ...settings, currency: e.target.value as any })}
+                onChange={(e) =>
+                  setSettings({ ...settings, currency: e.target.value as "INR" | "USD" })
+                }
               >
                 <option value="INR">INR (₹)</option>
                 <option value="USD">USD ($)</option>

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     // Save financial data
     const updatedUser = saveUserFinancialData(userId, financialData);
 
-    return NextResponse.json(
+    const res = NextResponse.json(
       {
         success: true,
         message: 'Financial profile created successfully',
@@ -71,6 +71,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+    // Mark onboarding complete
+    res.cookies.set("onb", "1", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+    return res;
   } catch (error) {
     console.error('Onboarding error:', error);
     return NextResponse.json(
